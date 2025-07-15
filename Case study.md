@@ -2,7 +2,12 @@
 ### Case study: How does a bike-share navigate speedy success?
 
 # 1. Introduction
- ***Need to fill this part in***
+ This Case Study is to demonstrate the skills I learned in the Google Data Analytics Course. In this program, I learned how to clean and organize
+ data for analysis, and complete analysis and calculations using spreadsheets, SQL and R programming. I also learned how to visualize and 
+ present data findings in dashboards, and in presentations using Tableu.
+
+In this Case Study, I will comlepete an analysis for a ficticious bike-share program named Cyclistic along with some key team members, using 
+SQL to clean, organize, analyze, and calulate. I will aslo be using Tableu to create diagrams to share my findings and present my complete analysis.
 
 # 2. Scenario
 
@@ -72,7 +77,7 @@ Those steps are as follows:
 5. Share
 6. Act
 
-### **Step One: Ask**
+## **Step One: Ask**
 The Cyclistic Marketing Analytics Team came up with three questions that will guide the future marketing program:
 1. How do annual members and casual riders use Cyclistic bikes dierently?
 2. Why would casual riders buy Cyclistic annual memberships?
@@ -81,10 +86,10 @@ The Cyclistic Marketing Analytics Team came up with three questions that will gu
 Moreno has assigned me the first question to answer: How do annual members and casual
 riders use Cyclistic bikes differently?
 
-### **Step Two: Prepare**
+## **Step Two: Prepare**
 **Data Source**   
-Because Cyclistic is a fictitional company, I will be using the data from the [City of Chicago’s Divvy bicycle sharing service](https://divvy-tripdata.s3.amazonaws.com/index.html).
-Specifically, I will be using the January 2024 - December 2024 data to analyze and identify current trends in riders behavior. 
+Because Cyclistic is a fictitional company, I will be using the January 2024 - December 2024 data from the [City of Chicago’s Divvy bicycle sharing service](https://divvy-tripdata.s3.amazonaws.com/index.html)
+to analyze and identify current trends in riders behavior. The data has been made available by Motivate International Inc. under this [license](https://divvybikes.com/data-license-agreement).
 
 **Data Organization**  
 The data is organized by month, and follows the naming covention of *"YYYYMM-divvy-tripdata"*. Each dataset includes all of the trips
@@ -113,4 +118,77 @@ C- Current
 C- Cited  
 
 The dataset comes directly from Divvy's parent company Lyft Bikes and Scooters LLC, so I can be sure that the data is reliable, original, and cited.
-There are 13 columns of data for each trip so the data is comprehensive, and the datasets were created days after the months end making them current.  
+There are 13 columns of data for each trip so the data is comprehensive, and the datasets are from the past year making them current.  
+
+## **Step Three: Process**  
+For this study, I am using MySQL to complete my analysis.  
+  
+**Data Combining**  
+I've combined the 12 datasets into one dataset I named *"2024complete-divvy-tripdata"* to easily clean and analyze the data. I used the following
+code to generate the new table:
+```
+SELECT *
+FROM cyclistic.`202401-divvy-tripdata` UNION ALL
+SELECT *
+FROM cyclistic.`202402-divvy-tripdata` UNION ALL
+SELECT *
+FROM cyclistic.`202403-divvy-tripdata` UNION ALL
+SELECT *
+FROM cyclistic.`202404-divvy-tripdata` UNION ALL
+SELECT *
+FROM cyclistic.`202405-divvy-tripdata` UNION ALL
+SELECT *
+FROM cyclistic.`202406-divvy-tripdata` UNION ALL
+SELECT *
+FROM cyclistic.`202407-divvy-tripdata` UNION ALL
+SELECT *
+FROM cyclistic.`202408-divvy-tripdata` UNION ALL
+SELECT *
+FROM cyclistic.`202409-divvy-tripdata` UNION ALL
+SELECT *
+FROM cyclistic.`202410-divvy-tripdata` UNION ALL
+SELECT *
+FROM cyclistic.`202411-divvy-tripdata` UNION ALL
+SELECT *
+FROM cyclistic.`202412-divvy-tripdata`
+AS 2024complete-divvy-tripdata;
+```
+Then I perform the following query to find that we are starting with ***XXXX*** rows of data for the entire year.
+
+```
+SELECT COUNT(*) AS total_records
+FROM cyclistic.`2024complete-divvy-tripdata`;
+```
+
+**Data Cleaning**  
+Before we can analyze the data we must ensure that the data is clean, concistant, and does not contain any errors.
+First i will check for any duplicate Values and it appears there are none.
+
+```
+SELECT COUNT(ride_id) - COUNT(DISTINCT ride_id) AS duplicate_rows
+FROM cyclistic.`2024complete-divvy-tripdata`;
+```
+
+------
+git rid of nulls
+
+calc trip_duration_minutes, hour, day of: week, month, year
+
+git rid of min <0 and >= 1440 
+------
+## **Step Four: Analyze**
+------
+find the ride total, average, maximum and minimum trip duration for different ride types by casual and member riders
+
+find the ride total, average, maximum and minimum trip duration for each month by casual and member riders
+
+find the ride total, average, maximum and minimum trip duration for each day of the week by casual and member riders.
+
+find the ride total, average, maximum and minimum trip duration at each start station by casual and member riders.
+------
+## **Step Five: Share**
+
+------
+
+------
+## **Step Six: Act**
