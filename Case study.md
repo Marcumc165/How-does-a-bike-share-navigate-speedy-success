@@ -88,7 +88,7 @@ riders use Cyclistic bikes differently?
 
 ## **Step Two: Prepare**
 **Data Source**   
-Because Cyclistic is a fictitional company, I will be using the January 2024 - December 2024 data from the [City of Chicago’s Divvy bicycle sharing service](https://divvy-tripdata.s3.amazonaws.com/index.html)
+Because Cyclistic is a fictitional company, I will be using the January 2024 - December 2024 data from [The City of Chicago’s Divvy bicycle sharing service](https://divvy-tripdata.s3.amazonaws.com/index.html)
 to analyze and identify current trends in riders behavior. The data has been made available by Motivate International Inc. under this [license](https://divvybikes.com/data-license-agreement).
 
 **Data Organization**  
@@ -121,54 +121,68 @@ The dataset comes directly from Divvy's parent company Lyft Bikes and Scooters L
 There are 13 columns of data for each trip so the data is comprehensive, and the datasets are from the past year making them current.  
 
 ## **Step Three: Process**  
-For this study, I am using MySQL to complete my analysis.  
+For this study, I am using Google's BigQuery to complete my analysis.  
   
 **Data Combining**  
-I've combined the 12 datasets into one dataset I named *"2024complete-divvy-tripdata"* to easily clean and analyze the data. I used the following
+I've combined the 12 datasets into one dataset I named *"combined_2024_tripdata"* to easily clean and analyze the data. I used the following
 code to generate the new table:
 ```
-SELECT *
-FROM cyclistic.`202401-divvy-tripdata` UNION ALL
-SELECT *
-FROM cyclistic.`202402-divvy-tripdata` UNION ALL
-SELECT *
-FROM cyclistic.`202403-divvy-tripdata` UNION ALL
-SELECT *
-FROM cyclistic.`202404-divvy-tripdata` UNION ALL
-SELECT *
-FROM cyclistic.`202405-divvy-tripdata` UNION ALL
-SELECT *
-FROM cyclistic.`202406-divvy-tripdata` UNION ALL
-SELECT *
-FROM cyclistic.`202407-divvy-tripdata` UNION ALL
-SELECT *
-FROM cyclistic.`202408-divvy-tripdata` UNION ALL
-SELECT *
-FROM cyclistic.`202409-divvy-tripdata` UNION ALL
-SELECT *
-FROM cyclistic.`202410-divvy-tripdata` UNION ALL
-SELECT *
-FROM cyclistic.`202411-divvy-tripdata` UNION ALL
-SELECT *
-FROM cyclistic.`202412-divvy-tripdata`
-AS 2024complete-divvy-tripdata;
+CREATE TABLE IF NOT EXISTS `cyclistic-466120.combined_2024_tripdata.combined_2024_tripdata` AS 
+(
+  SELECT * FROM `monthly_2024_tripdata.202401-divvy-tripdata`
+  UNION ALL
+  SELECT * FROM `monthly_2024_tripdata.202402-divvy-tripdata`
+  UNION ALL
+  SELECT * FROM `monthly_2024_tripdata.202403-divvy-tripdata`
+  UNION ALL
+  SELECT * FROM `monthly_2024_tripdata.202404-divvy-tripdata`
+  UNION ALL
+  SELECT * FROM `monthly_2024_tripdata.202405-divvy-tripdata`
+  UNION ALL
+  SELECT * FROM `monthly_2024_tripdata.202406-divvy-tripdata`
+  UNION ALL
+  SELECT * FROM `monthly_2024_tripdata.202407-divvy-tripdata`
+  UNION ALL
+  SELECT * FROM `monthly_2024_tripdata.202408-divvy-tripdata`
+  UNION ALL
+  SELECT * FROM `monthly_2024_tripdata.202409-divvy-tripdata`
+  UNION ALL
+  SELECT * FROM `monthly_2024_tripdata.202410-divvy-tripdata`
+  UNION ALL
+  SELECT * FROM `monthly_2024_tripdata.202411-divvy-tripdata`
+  UNION ALL
+  SELECT * FROM `monthly_2024_tripdata.202412-divvy-tripdata`
+);
 ```
-Then I perform the following query to find that we are starting with ***XXXX*** rows of data for the entire year.
+Then I perform the following query to find that we are starting with 5,860,568 rows of data for the entire year.
 
 ```
-SELECT COUNT(*) AS total_records
-FROM cyclistic.`2024complete-divvy-tripdata`;
+SELECT count(*) as total_records 
+FROM `cyclistic-466120.combined_2024_tripdata.combined_2024_tripdata`;
 ```
 
 **Data Cleaning**  
-Before we can analyze the data we must ensure that the data is clean, concistant, and does not contain any errors.
-First i will check for any duplicate Values and it appears there are none.
+Before we can clean the data I will make a duplicate table named "cleaned_2024_tripdata" so in case I make any irreversable errors, I have a data set that I can return 
+to. Now we must ensure that the data is clean, concistant, and does not contain any errors. First I will check the metadata to see if there are any 
+inconsistencies.  
+
+```
+SELECT column_name, data_type
+FROM combined_2024_tripdata.INFORMATION_SCHEMA.COLUMNS
+WHERE table_name = 'cleaned_2024_tripdata';
+```
+
+After checking, I have found no inconsistencies and have identified the ride_id column to be the primary key.
+Then I will check for any duplicate values and it appears there are none.  
 
 ```
 SELECT COUNT(ride_id) - COUNT(DISTINCT ride_id) AS duplicate_rows
-FROM cyclistic.`2024complete-divvy-tripdata`;
+FROM cyclistic.`all-2024-divvy-tripdata`;
+```
+a
 ```
 
+```
 ------
 git rid of nulls
 
