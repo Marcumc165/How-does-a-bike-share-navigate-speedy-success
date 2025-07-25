@@ -237,76 +237,90 @@ durations for all the rides. I will delete all of these rows than create a new t
 DELETE
 FROM cyclistic-466120.combined_2024_tripdata.v2_cleaned_2024_tripdata
 WHERE tripduration_mins <= 0 OR tripduration_mins >= 1441
-``` 
-------
-## **Step Four: Analyze**
-------
-find the ride total, average, maximum and minimum trip duration for different ride types by casual and member riders
+```  
+
+## **Step Four: Analyze**  
+
+In this phase of the analysis process, I will begin to analyze the relatonships in the data across the columns, identify trends, and extract datasets
+that help me understand the the different habits between casual riders and member riders. These are some of the queries that I ran to extract 
+datasets that I end up inserting into Tableu to create the visuals I will use in the Share step.
+
+To begin with, I ran this query is to extract the membership status, and total rides for each ride type.
 ```
 SELECT
   member_casual,
   rideable_type,
-  COUNT(ride_id) AS rides_total,
-  AVG(tripduration_mins) AS avg_trip_duration,
-  MAX(tripduration_mins) AS max_trip_duration,
-  MIN(tripduration_mins) AS min_trip_duration
+  COUNT(ride_id) AS rides_total
 FROM cyclistic-466120.combined_2024_tripdata.final_2024_tripdata
 GROUP BY
   rideable_type,
   member_casual
-ORDER BY rides_total DESC
-```
-find the ride total, average, maximum and minimum trip duration for each month by casual and member riders
+ORDER BY member_casual
+```  
+Following this, I ran this query is to find the membership status, ride total, and the average trip duration for each month.
 ```
 SELECT
-  month
+  month,
   member_casual,
   COUNT(ride_id) AS rides_total,
-  AVG(tripduration_mins) AS avg_trip_duration,
-  MAX(tripduration_mins) AS max_trip_duration,
-  MIN(tripduration_mins) AS min_trip_duration
+  AVG(tripduration_mins) AS avg_trip_duration
 FROM cyclistic-466120.combined_2024_tripdata.final_2024_tripdata
 GROUP BY
   member_casual,
   month
 ORDER BY rides_total DESC
-```
-
-find the ride total, average, maximum and minimum trip duration for each day of the week by casual and member riders.
+```  
+Next I ran this query is to find the membership status, ride total, and the average trip duration for each day of the week.
 ```
 SELECT
   day_of_week,
   member_casual,
   COUNT(ride_id) AS rides_total,
-  AVG(tripduration_mins) AS avg_trip_duration,
-  MAX(tripduration_mins) AS max_trip_duration,
-  MIN(tripduration_mins) AS min_trip_duration
+  AVG(tripduration_mins) AS avg_trip_duration
 FROM cyclistic-466120.combined_2024_tripdata.final_2024_tripdata
 GROUP BY
   day_of_week,
   member_casual
 ORDER BY rides_total DESC
 ```
-find the ride total, average, maximum and minimum trip duration at each start station by casual and member riders.
+After that, I ran this query to find the membership status, ride total, and the average trip duration for each hour.
+```
+SELECT
+  hour,
+  member_casual,
+  COUNT(ride_id) AS rides_total,
+  AVG(tripduration_mins) AS avg_trip_duration
+FROM cyclistic-466120.combined_2024_tripdata.final_2024_tripdata
+GROUP BY
+  hour,
+  member_casual
+ORDER BY rides_total DESC
+```  
+Finally I ran these query to find the most popular starting and ending locations for members and casual riders.
 ```
 SELECT
   start_station_name,
   member_casual,
-  COUNT(ride_id) AS rides_total,
-  AVG(tripduration_mins) AS avg_trip_duration,
-  MAX(tripduration_mins) AS max_trip_duration,
-  MIN(tripduration_mins) AS min_trip_duration
+  COUNT(ride_id) AS rides_total
 FROM cyclistic-466120.combined_2024_tripdata.final_2024_tripdata
 GROUP BY
   start_station_name,
   member_casual
 ORDER BY rides_total DESC
 
+SELECT
+  end_station_name,
+  member_casual,
+  COUNT(ride_id) AS rides_total
+FROM cyclistic-466120.combined_2024_tripdata.final_2024_tripdata
+GROUP BY
+  end_station_name,
+  member_casual
+ORDER BY rides_total DESC
 ```
-------
+
 ## **Step Five: Share**
 
-------
 
 ------
 ## **Step Six: Act**
