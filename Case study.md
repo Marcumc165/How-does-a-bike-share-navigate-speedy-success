@@ -7,7 +7,8 @@
  present data findings in dashboards, and in presentations using Tableu.
 
 In this Case Study, I will comlepete an analysis for a ficticious bike-share program named Cyclistic along with some key team members, using 
-SQL to clean, organize, analyze, and calulate. I will aslo be using Tableu to create diagrams to share my findings and present my complete analysis.
+SQL to clean, organize, analyze, and calulate my findings. I will aslo be using Tableu to create diagrams to share my findings and present my
+complete analysis.
 
 # 2. Scenario
 
@@ -92,8 +93,9 @@ Because Cyclistic is a fictitional company, I will be using the January 2024 - D
 to analyze and identify current trends in riders behavior. The data has been made available by Motivate International Inc. under this [license](https://divvybikes.com/data-license-agreement).
 
 **Data Organization**  
-The data is organized by month, and follows the naming covention of *"YYYYMM-divvy-tripdata"*. Each dataset includes all of the trips
-that were completed in the month, and contains the following data column names:   
+The data is organized by month, and follows the naming covention of *"YYYYMM-divvy-tripdata"*. The datasets for January - May contains the 
+trips that started in their respective months, and the datasets for June - December contain the trips that were concluded in their months. Each 
+dataset contains the following data column names:   
 * ride_id
 * rideable_type
 * started_at
@@ -152,13 +154,12 @@ CREATE TABLE IF NOT EXISTS `cyclistic-466120.combined_2024_tripdata.combined_202
   SELECT * FROM `monthly_2024_tripdata.202411-divvy-tripdata`
   UNION ALL
   SELECT * FROM `monthly_2024_tripdata.202412-divvy-tripdata`
-);
 ```
 Then I perform the following query to find that we are starting with 5,860,568 rows of data for the entire year.
 
 ```
 SELECT count(*) as total_records 
-FROM `cyclistic-466120.combined_2024_tripdata.combined_2024_tripdata`;
+FROM `cyclistic-466120.combined_2024_tripdata.combined_2024_tripdata`
 ```
 
 **Data Cleaning**  
@@ -169,36 +170,139 @@ inconsistencies.
 ```
 SELECT column_name, data_type
 FROM combined_2024_tripdata.INFORMATION_SCHEMA.COLUMNS
-WHERE table_name = 'cleaned_2024_tripdata';
+WHERE table_name = 'cleaned_2024_tripdata'
 ```
 
 After checking, I have found no inconsistencies and have identified the ride_id column to be the primary key.
-Then I will check for any duplicate values and it appears there are none.  
+Then I will check for any duplicate values and it appears there are 422 duplicate entries.  
 
 ```
 SELECT COUNT(ride_id) - COUNT(DISTINCT ride_id) AS duplicate_rows
-FROM cyclistic.`all-2024-divvy-tripdata`;
+FROM cyclistic-466120.combined_2024_tripdata.cleaned_2024_tripdata
 ```
-a
+I used the following code to determine which entries were duplicated and to investigate why they were duplicated.
 ```
+SELECT ride_id, COUNT(*) as num_entries
+FROM cyclistic-466120.combined_2024_tripdata.cleaned_2024_tripdata
+GROUP BY ride_id
+HAVING ( COUNT(*) > 1 )
+```
+I concluded that these duplicates are from the switch in May to June where reporting was switched from trips started in the month to trips 
+finished in the month. Trips that were started in May and ended in June were counted twice. I used the following code to take away the 
+duplicate entries and continue with the cleaning process.
+```
+DELETE FROM cyclistic-466120.combined_2024_tripdata.cleaned_2024_tripdata
+WHERE ride_id IN (
+    SELECT ride_id
+    FROM cyclistic-466120.combined_2024_tripdata.cleaned_2024_tripdata
+    GROUP BY ride_id
+    HAVING COUNT(*) > 1)
+```
+Now I will look for null values using the following code. It appears ther are 1,073,905 nulls in the start_station_name and start_station_id
+columns, 1,104,493 nulls in the end_statioon_name and end_station_id columns, and 7,152 null values for end_lat and end_lng. Although the data 
+is null, I will not be removing from the database because it can still provide useful data, and they aren't in a key field.
+```
+SELECT COUNT(*) - COUNT(ride_id) ride_id,
+ COUNT(*) - COUNT(rideable_type) rideable_type,
+ COUNT(*) - COUNT(started_at) started_at,
+ COUNT(*) - COUNT(ended_at) ended_at,
+ COUNT(*) - COUNT(start_station_name) start_station_name,
+ COUNT(*) - COUNT(start_station_id) start_station_id,
+ COUNT(*) - COUNT(end_station_name) end_station_name,
+ COUNT(*) - COUNT(end_station_id) end_station_id,
+ COUNT(*) - COUNT(start_lat) start_lat,
+ COUNT(*) - COUNT(start_lng) start_lng,
+ COUNT(*) - COUNT(end_lat) end_lat,
+ COUNT(*) - COUNT(end_lng) end_lng,
+ COUNT(*) - COUNT(member_casual) member_casual
+FROM cyclistic-466120.combined_2024_tripdata.cleaned_2024_tripdata
+```
+Next I will calculate some data points that I will use during my analysis. I will use the following code to calulate the hour, the day of the week, 
+and the month the trip started, and the trip duration in minutes.
 
 ```
-------
-git rid of nulls
+SELECT *,
+  TIMESTAMP_DIFF(ended_at, started_at, MINUTE) AS tripduration_mins,
+  extract (hour FROM started_at) AS hour,
+  format_date('%A', started_at) AS day_of_week,
+  format_date('%B', started_at) AS month,
+  format_date('%Y', started_at) AS year,
+FROM cyclistic-466120.combined_2024_tripdata.cleaned_2024_tripdata
 
-calc trip_duration_minutes, hour, day of: week, month, year
 
-git rid of min <0 and >= 1440 
+```
+I noticed that there are some trips that are shorter than one minute and some are longer than one day, which can affect the average trip 
+durations for all the rides. I will delete all of these rows than create a new table called "final_2024_tripdata".
+```
+DELETE
+FROM cyclistic-466120.combined_2024_tripdata.v2_cleaned_2024_tripdata
+WHERE tripduration_mins <= 0 OR tripduration_mins >= 1441
+``` 
 ------
 ## **Step Four: Analyze**
 ------
 find the ride total, average, maximum and minimum trip duration for different ride types by casual and member riders
-
+```
+SELECT
+  member_casual,
+  rideable_type,
+  COUNT(ride_id) AS rides_total,
+  AVG(tripduration_mins) AS avg_trip_duration,
+  MAX(tripduration_mins) AS max_trip_duration,
+  MIN(tripduration_mins) AS min_trip_duration
+FROM cyclistic-466120.combined_2024_tripdata.final_2024_tripdata
+GROUP BY
+  rideable_type,
+  member_casual
+ORDER BY rides_total DESC
+```
 find the ride total, average, maximum and minimum trip duration for each month by casual and member riders
+```
+SELECT
+  month
+  member_casual,
+  COUNT(ride_id) AS rides_total,
+  AVG(tripduration_mins) AS avg_trip_duration,
+  MAX(tripduration_mins) AS max_trip_duration,
+  MIN(tripduration_mins) AS min_trip_duration
+FROM cyclistic-466120.combined_2024_tripdata.final_2024_tripdata
+GROUP BY
+  member_casual,
+  month
+ORDER BY rides_total DESC
+```
 
 find the ride total, average, maximum and minimum trip duration for each day of the week by casual and member riders.
-
+```
+SELECT
+  day_of_week,
+  member_casual,
+  COUNT(ride_id) AS rides_total,
+  AVG(tripduration_mins) AS avg_trip_duration,
+  MAX(tripduration_mins) AS max_trip_duration,
+  MIN(tripduration_mins) AS min_trip_duration
+FROM cyclistic-466120.combined_2024_tripdata.final_2024_tripdata
+GROUP BY
+  day_of_week,
+  member_casual
+ORDER BY rides_total DESC
+```
 find the ride total, average, maximum and minimum trip duration at each start station by casual and member riders.
+```
+SELECT
+  start_station_name,
+  member_casual,
+  COUNT(ride_id) AS rides_total,
+  AVG(tripduration_mins) AS avg_trip_duration,
+  MAX(tripduration_mins) AS max_trip_duration,
+  MIN(tripduration_mins) AS min_trip_duration
+FROM cyclistic-466120.combined_2024_tripdata.final_2024_tripdata
+GROUP BY
+  start_station_name,
+  member_casual
+ORDER BY rides_total DESC
+
+```
 ------
 ## **Step Five: Share**
 
